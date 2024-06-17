@@ -63,7 +63,9 @@ func makeFFUFResultsUnique(urlList, wordlist, outputFile string) {
 // Function to run ffuf with specified method and capture unique results
 func runFFUF(url, wordlist, method string, seenSizes map[string]bool, outFile *os.File) error {
 	cmd := exec.Command("ffuf", "-u", fmt.Sprintf("%s/FUZZ", url), "-w", wordlist, "-X", method)
-	fmt.Printf("[DEBUG] Running command: ffuf -u %s/FUZZ -w %s -X %s\n", url, wordlist, method) // Debug output
+	debugLine := fmt.Sprintf("[DEBUG] Running command: ffuf -u %s/FUZZ -w %s -X %s\n", url, wordlist, method)
+	fmt.Print(debugLine) // Print to stdout for real-time debug info
+	outFile.WriteString(debugLine) // Write debug line to output file
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = os.Stderr
@@ -79,8 +81,10 @@ func runFFUF(url, wordlist, method string, seenSizes map[string]bool, outFile *o
 			size := strings.Split(match, " ")[1]
 			if _, seen := seenSizes[size]; !seen {
 				seenSizes[size] = true
-				outFile.WriteString(line + "\n")
-				fmt.Printf("[DEBUG] Found unique result: %s\n", line) // Debug output
+				outFile.WriteString(fmt.Sprintf("%s [%s] %s\n", url, method, line))
+				debugResult := fmt.Sprintf("[DEBUG] Found unique result: %s\n", line)
+				fmt.Print(debugResult) // Print to stdout for real-time debug info
+				outFile.WriteString(debugResult) // Write debug line to output file
 			}
 		}
 	}
